@@ -1,40 +1,46 @@
+from database import SessionLocal
+from models import Cliente, Servicio
+
+
 def consultar_servicios():
-    return [
-        {
-            "id": 1,
-            "nombre": "Reparación de computadoras",
-            "descripcion": "Diagnóstico y reparación de equipos."
-        },
-        {
-            "id": 2,
-            "nombre": "Instalación de software",
-            "descripcion": "Instalación y configuración de software."
-        },
-        {
-            "id": 3,
-            "nombre": "Mantenimiento preventivo",
-            "descripcion": "Limpieza y mantenimiento de equipos."
-        }
-    ]
+    db = SessionLocal()
+
+    try:
+        servicios = db.query(Servicio).all()
+
+        return [
+            {
+                "id": servicio.id,
+                "nombre": servicio.nombre,
+                "descripcion": servicio.descripcion
+            }
+            for servicio in servicios
+        ]
+
+    finally:
+        db.close()
+
 
 def consultar_cliente(nombre: str):
-    clientes = [
-        {
-            "id": 1,
-            "nombre": "Juan Pérez",
-            "email": "juan@email.com"
-        },
-        {
-            "id": 2,
-            "nombre": "María Gómez",
-            "email": "maria@email.com"
+    db = SessionLocal()
+
+    try:
+        cliente = (
+            db.query(Cliente)
+            .filter(Cliente.nombre.ilike(nombre))
+            .first()
+        )
+
+        if not cliente:
+            return {
+                "error": "Cliente no encontrado"
+            }
+
+        return {
+            "id": cliente.id,
+            "nombre": cliente.nombre,
+            "email": cliente.email
         }
-    ]
 
-    for cliente in clientes:
-        if cliente["nombre"].lower() == nombre.lower():
-            return cliente
-
-    return {
-        "error": "Cliente no encontrado"
-    }
+    finally:
+        db.close()
